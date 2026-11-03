@@ -1,3 +1,4 @@
+@font-face{font-family:'Bad Script';src:url('assets/fonts/BadScript-Regular.ttf') format('truetype');font-style:normal;font-weight:400;font-display:swap}
 @font-face{font-family:'Orelega One';src:url('assets/fonts/OrelegaOne-Regular.ttf') format('truetype');font-style:normal;font-weight:400;font-display:swap}
 @font-face{font-family:'Wedding Script';src:url('assets/fonts/GreatVibes-Regular.ttf') format('truetype');font-style:normal;font-weight:400;font-display:swap}
 /* v17: focused additions to the retained v16 layout. */
@@ -11,7 +12,8 @@ h1,h2,h3,.display,.date{font-family:var(--heading-font)}
 .native-italian-label{font-size:clamp(36px,5vw,53px);margin-bottom:20px}
 .native-invitation h2,#dresscode .dress-heading{font-family:var(--title-font);font-weight:400;letter-spacing:-.025em}
 .dress-scriptline{font-family:var(--body-font);font-style:italic}
-.native-yes{font:400 clamp(40px,7vw,66px)/1.2 var(--script-font);margin-top:26px}
+.native-yes{font:400 clamp(38px,6.5vw,62px)/1.5 'Bad Script',cursive;margin-top:26px}
+.yes-handwriting{display:inline-block;transform:skewX(-10deg);white-space:nowrap}
 .yes-flourish{display:block;width:min(70%,280px);height:24px;margin:0 auto;overflow:visible;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
 .dress-scriptline{font-size:clamp(20px,3.5vw,32px)}
 button,a,input,select,summary{touch-action:manipulation}
@@ -27,7 +29,7 @@ button,a,input,select,summary{touch-action:manipulation}
 .hero-artwork .ring-sparkle{animation-name:ring-glint;animation-duration:3.6s;font-size:clamp(10px,1.8vw,20px)}
 .hero-artwork .sparkle-one{left:34.9%;top:73.55%;animation-delay:.2s}
 .hero-artwork .sparkle-two{left:56.8%;top:57.56%;animation-delay:1.7s}
-.hero-couple{font:400 clamp(31px,4.6vw,53px)/1.2 var(--script-font);margin:0 auto 12px}
+.hero-couple{font:400 clamp(22px,3.5vw,40px)/1.35 var(--body-font);margin:0 auto 12px;letter-spacing:0}
 .hero-date{font:11px var(--body-font);letter-spacing:.2em}
 .hero-scroll{position:absolute;bottom:36px;left:50%;transform:translateX(-50%);color:var(--wine);font:10px var(--body-font);letter-spacing:.1em;white-space:nowrap;text-decoration:none}
 
@@ -165,7 +167,7 @@ footer{background:var(--paper);font:12px var(--body-font);letter-spacing:.06em;p
 @media(max-width:700px){
  .hero-wide{padding:65px 25px 80px}.hero-wide .native-frame{inset:12px;border-radius:32px}
  .hero-wide .hero-title{font-size:clamp(70px,18vw,108px)}.hero-subtitle{font-size:clamp(20px,5vw,28px);margin-top:25px}
- .hero-artwork{margin:15px auto;aspect-ratio:790/460}.hero-couple{font-size:clamp(28px,7vw,43px)}.hero-date{font-size:10px}.hero-scroll{font-size:8px;bottom:32px}
+ .hero-artwork{margin:15px auto;aspect-ratio:790/460}.hero-couple{font-size:clamp(18px,4.6vw,28px)}.hero-date{font-size:10px}.hero-scroll{font-size:8px;bottom:32px}
  #schedule.italian-table-section{padding:52px 10px 40px}
  #schedule .schedule-table-layout{width:100%;max-width:510px}
  #schedule .schedule-heading{margin-bottom:20px}
@@ -225,14 +227,14 @@ p,h1,h2,h3,h4,figcaption,address{hyphens:none;overflow-wrap:normal;word-break:no
 @media(max-width:700px){
  .hero-wide .hero-title{font-size:clamp(65px,18vw,108px);line-height:.92}
  .hero-wide{padding-top:65px;padding-bottom:85px}
- .hero-couple{font-size:clamp(25px,7.1vw,43px)}
+ .hero-couple{font-size:clamp(18px,4.6vw,28px)}
  .native-invitation{padding:155px 30px 65px}
  .native-invitation .native-lemon{top:30px;right:34px;width:80px}
  .native-invitation .native-lemon-left{left:34px}
  .native-invitation h2{font-size:clamp(29px,7.6vw,46px);line-height:1.1}
  .native-newlyweds{max-height:none;width:min(100%,360px)}
  .native-invitation-text{font-size:16px;line-height:1.65}
- .native-yes{font-size:clamp(38px,9vw,50px)}
+ .native-yes{font-size:clamp(32px,9.2vw,48px)}
  #schedule .table-event span{font-size:clamp(10px,2.8vw,13px);line-height:1.4}
  #schedule .table-event strong{font-size:clamp(21px,5.5vw,30px)}
  #schedule:before{background-size:340px;opacity:.3;-webkit-mask-image:linear-gradient(90deg,#000,transparent 23%,transparent 77%,#000);mask-image:linear-gradient(90deg,#000,transparent 23%,transparent 77%,#000)}
@@ -251,3 +253,10 @@ p,h1,h2,h3,h4,figcaption,address{hyphens:none;overflow-wrap:normal;word-break:no
 .schedule-celebration{position:relative;z-index:2;max-width:510px;margin:24px auto 0;font:16px/1.75 var(--body-font);color:#4f3330}
 @media(max-width:700px){.schedule-celebration{font-size:14px;line-height:1.7;margin:20px 24px 0}#schedule .event-hint{margin-top:18px}}
 .hero-wide{background:#fbf7ef!important}
+
+/* Review 3: only the requested typography and wide-screen decoration spacing. */
+.family-phrase{display:inline-block;white-space:nowrap}
+@media(min-width:701px){
+ #dresscode.dress-editorial{padding-bottom:320px}
+ .decor-landscape{bottom:28px}
+}
