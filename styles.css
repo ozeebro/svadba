@@ -250,8 +250,6 @@ p,h1,h2,h3,h4,figcaption,address{hyphens:none;overflow-wrap:normal;word-break:no
  .native-invitation.visible .native-lemon-left{transform:scaleX(-1)}
 }
 
-.schedule-celebration{position:relative;z-index:2;max-width:510px;margin:24px auto 0;font:16px/1.75 var(--body-font);color:#4f3330}
-@media(max-width:700px){.schedule-celebration{font-size:14px;line-height:1.7;margin:20px 24px 0}#schedule .event-hint{margin-top:18px}}
 .hero-wide{background:#fbf7ef!important}
 
 /* Review 3: only the requested typography and wide-screen decoration spacing. */
@@ -259,4 +257,38 @@ p,h1,h2,h3,h4,figcaption,address{hyphens:none;overflow-wrap:normal;word-break:no
 @media(min-width:701px){
  #dresscode.dress-editorial{padding-bottom:320px}
  .decor-landscape{bottom:28px}
+}
+
+/* Review 4: three entries on a wider table; only the first two are venue controls. */
+#schedule .schedule-table-layout{container-type:inline-size}
+#schedule .schedule-table-program{top:24%;height:60%;left:26%;width:48%;gap:13px;justify-content:space-between}
+#schedule .table-event{flex-shrink:0;min-width:0;width:100%}
+#schedule .event-trigger{padding:0;border-radius:10px}
+#schedule .table-event .event-copy{font:clamp(8px,2.8cqw,14px)/1.35 var(--body-font);margin-top:7px}
+#schedule .table-event .event-copy .program-line{display:block;font:inherit;margin:0!important;white-space:nowrap}
+#schedule .table-event-info{display:block;cursor:default}
+#schedule .table-event-info strong{font-size:clamp(19px,3.2vw,29px);white-space:nowrap}
+#schedule .celebration-copy{margin:7px auto 0;font:clamp(9px,2.6cqw,13px)/1.35 var(--body-font);color:#4f3330;text-wrap:pretty}
+#schedule .table-event-info:hover{background:transparent;box-shadow:none}
+@media(max-width:700px){
+ #schedule .schedule-table-program{top:21%;height:64%;left:26%;width:48%;gap:7px}
+ #schedule .table-event strong{font-size:clamp(19px,5vw,28px)}
+ #schedule .table-event-info strong{font-size:clamp(17px,4.5vw,25px)}
+ #schedule .table-event .event-copy{margin-top:5px;line-height:1.35}
+ #schedule .celebration-copy{font-size:clamp(9px,2.6cqw,13px);margin-top:5px;line-height:1.35}
+}
+
+@media(max-width:350px){
+ #schedule .schedule-table-program{top:20%;height:66%;gap:4px}
+ #schedule .table-event strong{font-size:17px}
+ #schedule .table-event-info strong{font-size:16px}
+ #schedule .table-event .event-copy{margin-top:4px;line-height:1.2}
+ #schedule .celebration-copy{margin-top:4px;line-height:1.2}
+}
+@media(min-width:701px) and (max-width:1000px){
+ #schedule .schedule-table-program{top:21%;height:64%;gap:7px}
+ #schedule .table-event strong{font-size:25px}
+ #schedule .table-event-info strong{font-size:23px}
+ #schedule .table-event .event-copy{margin-top:5px}
+ #schedule .celebration-copy{margin-top:5px}
 }
