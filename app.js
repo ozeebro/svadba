@@ -1,5 +1,23 @@
 'use strict';
 
+// Keep short Russian words with the word that follows, including dynamic captions.
+function bindShortWords(root) {
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+    acceptNode(node) {
+      return node.parentElement?.closest('script,style,noscript,input,textarea')
+        ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;
+    }
+  });
+  const shortWord = /(^|[^а-яёa-z])((?:в|во|к|ко|с|со|о|об|обо|у|от|до|из|за|на|не|ни|но|по|под|при|над|без|для|про|через|между|перед|и|а)) +(?=\S)/gi;
+  let node;
+  while ((node = walker.nextNode())) {
+    // Repeat for adjacent short words, such as «и с нами».
+    node.textContent = node.textContent.replace(shortWord, '$1$2\u00a0').replace(shortWord, '$1$2\u00a0');
+  }
+}
+bindShortWords(document.body);
+
+
 // Reveal each time independently, rather than revealing the whole program at once.
 if ('IntersectionObserver' in window) {
   const sections = new IntersectionObserver(entries => {
@@ -108,15 +126,15 @@ if ('IntersectionObserver' in window) {
 const looks = {
   red: { title: 'Красный — с итальянским темпераментом', women: [[0, 'Красная шёлковая блуза и шоколадные брюки'], [1, 'Асимметричный красный топ и брюки айвори']], men: [[0, 'Красная льняная рубашка и коричневые брюки'], [1, 'Красное поло и чёрные брюки']] },
   lemon: { title: 'Лимонный — немного солнечной Италии', women: [[0, 'Лимонный шёлковый топ и светлые брюки'], [1, 'Лимонная блуза и чёрные брюки']], men: [[0, 'Лимонная рубашка и шоколадные брюки'], [1, 'Чёрная рубашка, бежевые брюки и жёлтый платок']] },
-  white: { title: 'Белый — в сочетании с яркими акцентами', women: [[0, 'Топ айвори, жёлтая брошь и шоколадные брюки'], [1, 'Белая рубашка и лимонные брюки']], men: [[0, 'Белая рубашка и красный джемпер'], [1, 'Рубашка айвори и красный шёлковый платок']] },
-  beige: { title: 'Бежевый — тёплый и естественный', women: [[0, 'Бежевый жилет, красный платок и шоколадные брюки'], [1, 'Бежевая блуза, светлая юбка и бордовая сумка']], men: [[0, 'Бежевый костюм и чёрная рубашка'], [1, 'Бежевое поло и шоколадные брюки']] },
-  brown: { title: 'Тёмно-коричневый — глубокий и благородный', women: [[0, 'Шоколадная блуза, светлые брюки и лимонная сумка'], [1, 'Шоколадные брюки и красная блуза']], men: [[0, 'Шоколадная рубашка и светлые брюки'], [1, 'Коричневое поло и бежевые брюки']] },
-  black: { title: 'Чёрный — обязательно с цветным акцентом', women: [[0, 'Чёрная шёлковая блуза и красные брюки'], [1, 'Чёрные брюки и красный атласный топ']], men: [[0, 'Чёрная рубашка, бежевые брюки и красный платок'], [1, 'Чёрный образ и красные акценты']] }
+  white: { title: 'Белый — в сочетании с яркими акцентами', women: [[0, 'Светлая юбка, красная блуза и лимонный платок', null, 'assets/outfit-white-skirt.jpg'], [1, 'Белая рубашка и лимонные брюки']], men: [[0, 'Белая рубашка и красный джемпер'], [1, 'Рубашка айвори и красный шёлковый платок']] },
+  beige: { title: 'Бежевый — тёплый и естественный', women: [[0, 'Бежевый топ, чёрные шорты и красные аксессуары', null, 'assets/outfit-beige-shorts.jpg'], [1, 'Бежевый образ, красный пояс-цветок и плетёная сумка', null, 'assets/outfit-beige-dress.jpg']], men: [[0, 'Бежевый костюм и чёрная рубашка'], [1, 'Бежевое поло и шоколадные брюки']] },
+  brown: { title: 'Тёмно-коричневый — универсальный и благородный', women: [[0, 'Топ айвори, жёлтая брошь и шоколадные брюки', 'white'], [1, 'Шоколадные брюки и красное поло', null, 'assets/outfit-brown-polo.jpg']], men: [[0, 'Шоколадная рубашка и светлые брюки'], [1, 'Коричневое поло и бежевые брюки']] },
+  black: { title: 'Чёрный — обязательно с цветным акцентом (не монохром!)', women: [[0, 'Чёрная шёлковая блуза и красные брюки'], [1, 'Чёрные брюки и красный атласный топ']], men: [[0, 'Чёрная рубашка, бежевые брюки и красный платок'], [1, 'Чёрный образ и красные акценты']] }
 };
 const lookPanel = document.getElementById('look-panel');
 let selectedColor = null;
 
-function outfitCard(gender, [index, caption], color) {
+function outfitCard(gender, [index, caption, sourceColor, sourceFile], color) {
   const figure = document.createElement('figure');
   figure.className = 'outfit';
   const photo = document.createElement('div');
@@ -124,7 +142,8 @@ function outfitCard(gender, [index, caption], color) {
   photo.style.setProperty('--photo-x', index);
   photo.style.setProperty('--photo-y', gender === 'women' ? 0 : 1);
   const image = document.createElement('img');
-  image.src = `assets/look-${color}.png`;
+  image.src = sourceFile || `assets/look-${sourceColor || color}.png`;
+  if (sourceFile) photo.classList.add('outfit-photo-single');
   // A quadrant of the original generated sheet is displayed without upscaling a thumbnail.
   image.alt = caption;
   image.width = 1024;
@@ -134,6 +153,7 @@ function outfitCard(gender, [index, caption], color) {
   const text = document.createElement('figcaption');
   text.textContent = caption;
   figure.append(photo, text);
+  bindShortWords(figure);
   return figure;
 }
 
@@ -145,6 +165,7 @@ function selectColor(color) {
     button.setAttribute('aria-pressed', String(button.dataset.color === color));
   });
   document.getElementById('look-panel-title').textContent = selection.title;
+  bindShortWords(document.getElementById('look-panel-title'));
   ['women', 'men'].forEach(gender => {
     document.getElementById(`${gender}-looks`).replaceChildren(...selection[gender].map(look => outfitCard(gender, look, color)));
   });
@@ -161,19 +182,6 @@ document.querySelectorAll('.color-button').forEach(button => {
   button.addEventListener('pointerenter', () => {
     if (hoverAvailable.matches) selectColor(button.dataset.color);
   });
-});
-
-const glasses = document.querySelector('.glasses-button');
-function clink() {
-  if (glasses.classList.contains('clinking')) return;
-  glasses.classList.add('clinking');
-}
-glasses.addEventListener('pointerenter', () => {
-  if (hoverAvailable.matches) clink();
-});
-glasses.addEventListener('click', clink);
-glasses.addEventListener('animationend', event => {
-  if (event.animationName === 'clink-left') glasses.classList.remove('clinking');
 });
 
 // No storage or requests: the current stage is the invitation interface only.
@@ -217,6 +225,7 @@ function addMember(focus = true) {
     renumberMembers();
     adjacent?.querySelector('input[type=text]').focus({ preventScroll: true });
   });
+  bindShortWords(member);
   members.append(member);
   feedback.replaceChildren();
   renumberMembers();
@@ -253,6 +262,7 @@ form.addEventListener('submit', event => {
   const note = document.createElement('p');
   note.textContent = 'Ответы пока не отправлены. Отправка организаторам появится в следующей версии.';
   feedback.append(note);
+  bindShortWords(feedback);
   feedback.focus({ preventScroll: true });
   feedback.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'center' });
 });
