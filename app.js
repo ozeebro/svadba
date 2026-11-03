@@ -184,11 +184,17 @@ document.querySelectorAll('.color-button').forEach(button => {
   });
 });
 
-// No storage or requests: the current stage is the invitation interface only.
+// The public endpoint contains no Telegram credentials; they stay in Worker secrets.
+const RSVP_ENDPOINT = 'https://dolcevita-rsvp.ozeeimo.workers.dev/rsvp';
+const MAX_FAMILY_MEMBERS = 8;
 const form = document.getElementById('guest-form');
 const members = document.getElementById('family-members');
 const feedback = document.getElementById('feedback');
+const submitAnswer = form.querySelector('.submit-answer');
+const addMemberButton = document.getElementById('add-member');
 let memberSequence = 0;
+let sendingAnswer = false;
+let answerSent = false;
 
 function renumberMembers() {
   [...members.children].forEach((member, index) => {
@@ -197,9 +203,11 @@ function renumberMembers() {
     remove.hidden = members.children.length === 1;
     remove.setAttribute('aria-label', `Удалить гостя ${index + 1}`);
   });
+  addMemberButton.disabled = members.children.length >= MAX_FAMILY_MEMBERS;
 }
 
 function addMember(focus = true) {
+  if (sendingAnswer || members.children.length >= MAX_FAMILY_MEMBERS) return;
   const id = ++memberSequence;
   const template = document.createElement('template');
   template.innerHTML = document.getElementById('member-template').innerHTML.replaceAll('__ID__', id);
@@ -221,47 +229,92 @@ function addMember(focus = true) {
   member.querySelector('.remove-member').addEventListener('click', () => {
     const adjacent = member.previousElementSibling || member.nextElementSibling;
     member.remove();
-    feedback.replaceChildren();
+    clearAnswerStatus();
     renumberMembers();
     adjacent?.querySelector('input[type=text]').focus({ preventScroll: true });
   });
   bindShortWords(member);
   members.append(member);
-  feedback.replaceChildren();
+  clearAnswerStatus();
   renumberMembers();
   if (focus) member.querySelector('input[type=text]').focus();
 }
 
-document.getElementById('add-member').addEventListener('click', () => addMember());
-form.addEventListener('input', () => feedback.replaceChildren());
-form.addEventListener('change', () => feedback.replaceChildren());
-form.addEventListener('submit', event => {
+function clearAnswerStatus() {
+  if (sendingAnswer) return;
+  feedback.replaceChildren();
+  if (answerSent) {
+    answerSent = false;
+    submitAnswer.disabled = false;
+    submitAnswer.textContent = 'Отправить ♡';
+  }
+}
+
+addMemberButton.addEventListener('click', () => addMember());
+form.addEventListener('input', clearAnswerStatus);
+form.addEventListener('change', clearAnswerStatus);
+form.addEventListener('submit', async event => {
   event.preventDefault();
-  const heading = document.createElement('h3');
-  heading.textContent = 'Проверьте ваши ответы';
-  feedback.replaceChildren(heading);
-  [...members.children].forEach(member => {
-    const summary = document.createElement('div');
-    summary.className = 'answer-summary';
-    const name = document.createElement('strong');
-    name.textContent = member.querySelector('input[type=text]').value.trim();
+  if (sendingAnswer || answerSent || !form.reportValidity()) return;
+  const family = [...members.children].map(member => {
     const attending = member.querySelector('input[type=radio]:checked').value === 'yes';
-    const attendance = document.createElement('p');
-    attendance.textContent = attending ? 'Будет с нами ♡' : 'Не сможет присутствовать';
-    summary.append(name, attendance);
+    const answer = { name: member.querySelector('input[type=text]').value.trim(), attending };
     if (attending) {
+      answer.menu = {};
       member.querySelectorAll('select').forEach(select => {
-        const line = document.createElement('p');
-        const label = select.labels[0].textContent.replace(/\?$/, '');
-        line.textContent = `${label}: ${select.value}`;
-        summary.append(line);
+        const key = select.name.split('-').at(-1);
+        answer.menu[key] = select.value.replace(/\s+/gu, ' ').trim();
       });
     }
-    feedback.append(summary);
+    return answer;
   });
-  const note = document.createElement('p');
-  note.textContent = 'Ответы пока не отправлены. Отправка организаторам появится в следующей версии.';
-  feedback.append(note);
+  const payload = { members: family, website: form.elements.website.value };
+  // Preserve existing disabled states, especially hidden menus of declined guests.
+  const controls = [...form.querySelectorAll('input,select,button')].map(control => [control, control.disabled]);
+  sendingAnswer = true;
+  form.setAttribute('aria-busy', 'true');
+  controls.forEach(([control]) => { control.disabled = true; });
+  submitAnswer.textContent = 'Отправляем…';
+  feedback.textContent = 'Отправляем ваш ответ ♡';
+  let timeout;
+  try {
+    const controller = new AbortController();
+    timeout = setTimeout(() => controller.abort(), 20000);
+    const response = await fetch(RSVP_ENDPOINT, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload), signal: controller.signal, credentials: 'omit', referrerPolicy: 'no-referrer'
+    });
+    const result = await response.json();
+    if (!response.ok || result.ok !== true) {
+      const messages = {
+        not_configured: 'Отправка ещё настраивается. Пожалуйста, попробуйте немного позже.',
+        invalid_request: 'Проверьте имена и выбор меню, затем повторите отправку.',
+        too_large: 'Анкета получилась слишком большой. Пожалуйста, отправьте ответы двумя анкетами.',
+        busy: 'Сейчас поступает много ответов. Пожалуйста, повторите отправку через минуту.'
+      };
+      const error = new Error('RSVP delivery failed');
+      error.rsvpMessage = messages[result.code] || 'Не удалось подтвердить доставку ответа. Пожалуйста, повторите отправку чуть позже.';
+      throw error;
+    }
+    answerSent = true;
+    const heading = document.createElement('h3');
+    heading.textContent = 'Спасибо за ваш ответ ♡';
+    const confirmation = document.createElement('p');
+    confirmation.textContent = 'Мы получили вашу анкету.';
+    feedback.replaceChildren(heading, confirmation);
+  } catch (error) {
+    const note = document.createElement('p');
+    note.textContent = error.rsvpMessage || 'Не удалось подтвердить доставку ответа. Проверьте соединение и попробуйте ещё раз. Заполненные данные остались в форме.';
+    feedback.replaceChildren(note);
+  } finally {
+    clearTimeout(timeout);
+    sendingAnswer = false;
+    form.removeAttribute('aria-busy');
+    controls.forEach(([control, disabled]) => { control.disabled = disabled; });
+    renumberMembers();
+    submitAnswer.disabled = answerSent;
+    submitAnswer.textContent = answerSent ? 'Отправлено ♡' : 'Отправить ♡';
+  }
   bindShortWords(feedback);
   feedback.focus({ preventScroll: true });
   feedback.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'center' });
