@@ -292,3 +292,7 @@ p,h1,h2,h3,h4,figcaption,address{hyphens:none;overflow-wrap:normal;word-break:no
  #schedule .table-event .event-copy{margin-top:5px}
  #schedule .celebration-copy{margin-top:5px}
 }
+
+/* Review 5: preserve the requested five lines in the evening description. */
+#schedule .table-event-info .celebration-copy{font-size:clamp(7.5px,2.8cqw,13px)}
+#schedule .table-event-info .celebration-copy .celebration-line{display:block;font:inherit;margin:0!important;white-space:nowrap}
